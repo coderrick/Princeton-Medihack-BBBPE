@@ -87,6 +87,7 @@ from deepchem.models.tensorgraph.layers import Feature
 filename = 'finaldata.csv'
 tox21_tasks, tox21_datasets, transformers = loadBBB(
         filename, featurizer='GraphConv', split='index', reload=True, K=4)
+print(tox21_datasets)
 
 #atom_features = Feature(shape=(None, 75))
 #degree_slice = Feature(shape=(None, 2), dtype=tf.int32)
