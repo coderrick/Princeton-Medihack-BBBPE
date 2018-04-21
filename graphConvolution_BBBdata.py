@@ -14,14 +14,79 @@ import tensorflow as tf
 import deepchem as dc
 from deepchem.models.tensorgraph.tensor_graph import TensorGraph
 
+def loadBBB(filename, featurizer='GraphConv', split='index', reload=True, K=4):
+  """Load BBB data"""
+  import os
+
+  bbb_tasks = ['BBB']
+
+  data_dir = 'bbbdata'
+  #data_dir = dc.utils.get_data_dir()
+  if reload:
+    #save_dir = os.path.join(data_dir, "bbb/" + featurizer + "/" + split)
+    save_dir = os.path.join(data_dir, filename)
+    loaded, all_dataset, transformers = dc.utils.save.load_dataset_from_disk(
+        save_dir)
+    if loaded:
+      return bbb_tasks, all_dataset, transformers
+
+  dataset_file = os.path.join(data_dir, filename)
+  #dataset_file = os.path.join(data_dir, "bbb.csv.gz")
+
+  if featurizer == 'ECFP':
+    featurizer = dc.feat.CircularFingerprint(size=1024)
+  elif featurizer == 'GraphConv':
+    featurizer = dc.feat.ConvMolFeaturizer()
+  elif featurizer == 'Weave':
+    featurizer = dc.feat.WeaveFeaturizer()
+  elif featurizer == 'Raw':
+    featurizer = dc.feat.RawFeaturizer()
+  elif featurizer == 'AdjacencyConv':
+    featurizer = dc.feat.AdjacencyFingerprint(
+        max_n_atoms=150, max_valence=6)
+
+  loader = dc.data.CSVLoader(
+      tasks=bbb_tasks, smiles_field="smiles", featurizer=featurizer)
+  dataset = loader.featurize(dataset_file, shard_size=8192)
+
+  # Initialize transformers
+  transformers = [
+      dc.trans.BalancingTransformer(transform_w=True, dataset=dataset)
+  ]
+
+  print("About to transform data")
+  for transformer in transformers:
+    dataset = transformer.transform(dataset)
+
+  splitters = {
+      'index': dc.splits.IndexSplitter(),
+      'random': dc.splits.RandomSplitter(),
+      'scaffold': dc.splits.ScaffoldSplitter(),
+      'butina': dc.splits.ButinaSplitter(),
+      'task': dc.splits.TaskSplitter()
+  }
+
+  splitter = splitters[split]
+  if split == 'task':
+    fold_datasets = splitter.k_fold_split(dataset, K)
+    all_dataset = fold_datasets
+  else:
+    train, valid, test = splitter.train_valid_test_split(dataset)
+    all_dataset = (train, valid, test)
+    if reload:
+      dc.utils.save.save_dataset_to_disk(data_dir, train, valid, test,
+                                               transformers)
+      #dc.utils.save.save_dataset_to_disk(save_dir, train, valid, test,
+  return bbb_tasks, all_dataset, transformers
+
 tg = TensorGraph(use_queue=False)
 
 # Example
 # Load dataset and define features
 from deepchem.models.tensorgraph.layers import Feature
-
+filename = 'finaldata.csv'
 tox21_tasks, tox21_datasets, transformers = loadBBB(
-        filename, featurizer='GraphConv', split='index', reloqd=True, K=4)
+        filename, featurizer='GraphConv', split='index', reload=True, K=4)
 
 #atom_features = Feature(shape=(None, 75))
 #degree_slice = Feature(shape=(None, 2), dtype=tf.int32)
@@ -89,65 +154,3 @@ tox21_tasks, tox21_datasets, transformers = loadBBB(
 #valid_scores = metric.compute_metric(valid_dataset.y, valid_predictions, valid_dataset.w)
 #print("Valid ROC-AUC Score: %f" % valid_scores)
 
-def loadBBB(filename, featurizer='GraphConv', split='index', reloqd=True, K=4)
-  """Load BBB data"""
-
-  bbb_tasks = ['BBB']
-
-  data_dir = './'
-  #data_dir = deepchem.utils.get_data_dir()
-  if reload:
-    #save_dir = os.path.join(data_dir, "bbb/" + featurizer + "/" + split)
-    save_dir = filename
-    loaded, all_dataset, transformers = deepchem.utils.save.load_dataset_from_disk(
-        save_dir)
-    if loaded:
-      return bbb_tasks, all_dataset, transformers
-
-  dataset_file = os.path.join(data_dir, "bbb.csv")
-  #dataset_file = os.path.join(data_dir, "bbb.csv.gz")
-
-  if featurizer == 'ECFP':
-    featurizer = deepchem.feat.CircularFingerprint(size=1024)
-  elif featurizer == 'GraphConv':
-    featurizer = deepchem.feat.ConvMolFeaturizer()
-  elif featurizer == 'Weave':
-    featurizer = deepchem.feat.WeaveFeaturizer()
-  elif featurizer == 'Raw':
-    featurizer = deepchem.feat.RawFeaturizer()
-  elif featurizer == 'AdjacencyConv':
-    featurizer = deepchem.feat.AdjacencyFingerprint(
-        max_n_atoms=150, max_valence=6)
-
-  loader = deepchem.data.CSVLoader(
-      tasks=bbb_tasks, smiles_field="smiles", featurizer=featurizer)
-  dataset = loader.featurize(dataset_file, shard_size=8192)
-
-  # Initialize transformers
-  transformers = [
-      deepchem.trans.BalancingTransformer(transform_w=True, dataset=dataset)
-  ]
-
-  print("About to transform data")
-  for transformer in transformers:
-    dataset = transformer.transform(dataset)
-
-  splitters = {
-      'index': deepchem.splits.IndexSplitter(),
-      'random': deepchem.splits.RandomSplitter(),
-      'scaffold': deepchem.splits.ScaffoldSplitter(),
-      'butina': deepchem.splits.ButinaSplitter(),
-      'task': deepchem.splits.TaskSplitter()
-  }
-
-  splitter = splitters[split]
-  if split == 'task':
-    fold_datasets = splitter.k_fold_split(dataset, K)
-    all_dataset = fold_datasets
-  else:
-    train, valid, test = splitter.train_valid_test_split(dataset)
-    all_dataset = (train, valid, test)
-    if reload:
-      deepchem.utils.save.save_dataset_to_disk(save_dir, train, valid, test,
-                                               transformers)
-  return bbb_tasks, all_dataset, transformers
