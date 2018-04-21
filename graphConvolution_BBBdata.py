@@ -101,7 +101,7 @@ train_dataset, valid_dataset, test_dataset = bbb_datasets
 from deepchem.models.tensorgraph.models.graph_models import GraphConvModel
 
 model = GraphConvModel(
-    len(bbb_tasks), batch_size=50, mode='classification')
+    len(bbb_tasks), batch_size=50, mode='classification',model_dir='models')
 # Set nb_epoch=10 for better results.
 model.fit(train_dataset, nb_epoch=1)
 
