@@ -85,9 +85,12 @@ tg = TensorGraph(use_queue=False)
 # Load dataset and define features
 from deepchem.models.tensorgraph.layers import Feature
 filename = 'finaldata.csv'
+# splitter options: index random scaffold butina task
+# featurizer options: ECFP GraphConv Weave Raw AdjacencyConv
+# reload feature not quite working
+# not sure what the K value is
 tox21_tasks, tox21_datasets, transformers = loadBBB(
-        filename, featurizer='GraphConv', split='index', reload=True, K=4)
-print(tox21_datasets)
+        filename, featurizer='GraphConv', split='random', reload=True, K=4)
 
 #atom_features = Feature(shape=(None, 75))
 #degree_slice = Feature(shape=(None, 2), dtype=tf.int32)
