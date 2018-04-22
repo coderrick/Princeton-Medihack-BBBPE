@@ -6,6 +6,16 @@
  							                                    
  Largely from the deepchem 
  'Graph Convolutions For Tox21' Tutorial
+
+ usage example:
+     'python graphConvolution_BBBdata.py --filename 'finaldata.csv' 
+                                         --split_method='index'
+                                         --training_fraction 0.6 
+                                         --testing_fraction 0.2
+                                         --validation_fraction 0.2
+                                         --confusion_matrix
+                                         --bbbp_split 0.5 --generate'
+
 """
 from __future__ import division
 from __future__ import print_function
@@ -373,8 +383,8 @@ def main(argv=None):
                       'bbb prediction < 0.4 would be a negative')
   parser.add_argument("--generate", action="store_true", default=True,
                  help='Generate and save the model')
-  parser.add_argument("--predict", action="store_true", default=False,
-                 help='Predict with the model')
+  #parser.add_argument("--predict", action="store_true", default=False,
+  #               help='Predict with the model')
 
   # Initialize the graphConvolution_BBBdata class
   bbb_gc = graphConvolution_BBBdata()
