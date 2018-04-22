@@ -22,4 +22,4 @@ Note: any data for training or predicting must be located in the 'bbbdata' direc
 Note: data must be in the csv format, and include collumn headers: 'smiles' and 'bbb' 
 
 # Try it!
-Take a look at our Beta web app [HERE!](http://coderrick.github.io/)
+Take a look at our Beta web app [HERE!](http://35.196.39.117/)
