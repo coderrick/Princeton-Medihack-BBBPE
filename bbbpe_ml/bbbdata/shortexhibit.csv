@@ -1,0 +1,10 @@
+﻿mol_id,smiles,BBB
+ZINC00000017,CCC[S@](=O)c1ccc2c(c1)[nH]/c(=N\C(=O)OC)/[nH]2,1
+ZINC00000024,c1c2c(cc3c1OCO3)[C@@H]4[C@H]([C@@H](C=C5[C@@H]4[NH+](C2)CC5)O)O,1
+ZINC00000030,C[C@@H](CC(c1ccccc1)(c2ccccc2)C(=O)N)[NH+](C)C,1
+ZINC00000031,Cc1c(c(=O)n(n1C)c2ccccc2)NC(=O)[C@H](C)[NH+](C)C,0
+ZINC00000050,C[NH+]1CCN2c3ccccc3Cn4cccc4[C@@H]2C1,1
+ZINC00000056,C[NH+]1[C@@H]2CC[C@H]1CC(C2)OC(=O)[C@H](CO)c3ccccc3,1
+ZINC00000063,CC(C)[NH2+]C[C@H](COc1cccc2c1oc(c2)C(=O)C)O,1
+ZINC00000066,c1cc(ccc1C(=O)[O-])N[C@@H]2[C@@H]([C@H]([C@@H](CO2)O)O)O,0
+ZINC00000091,C[C@@H](c1nc(cs1)c2ccc(cc2)Br)C(=O)[O-],1
