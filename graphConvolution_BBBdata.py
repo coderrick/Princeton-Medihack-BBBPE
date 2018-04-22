@@ -8,8 +8,8 @@
  'Graph Convolutions For Tox21' Tutorial
 
  usage example:
-     'python graphConvolution_BBBdata.py --filename 'finaldata.csv' 
-                                         --split_method='index'
+     'python graphConvolution_BBBdata.py --filename finaldata.csv
+                                         --split_method index
                                          --training_fraction 0.6 
                                          --testing_fraction 0.2
                                          --validation_fraction 0.2
@@ -77,6 +77,18 @@ class graphConvolution_BBBdata(object):
     else:
       print('bbbp_split value must be between 1 and 0')
       self.bbbp_split = [0.5, 0.5]
+
+  # evaluate
+  def reshape_y_pred(self, y_true, y_pred):
+    """
+    TensorGraph.Predict returns a list of arrays, one for each output
+    We also have to remove the padding on the last batch
+    Metrics taks results of shape (samples, n_task, prob_of_class)
+    """
+    n_samples = len(y_true)
+    return y_pred[:n_samples]
+    #retval = np.stack(y_pred, axis=1)
+    #return retval[:n_samples]
 
   def loadBBB(self, filename, featurizer='GraphConv', split='index', reload=True, K=4,
               ftrain=0.8, fvalid=0.1, ftest=0.1):
@@ -259,105 +271,140 @@ class graphConvolution_BBBdata(object):
     metric = dc.metrics.Metric(
         dc.metrics.roc_auc_score, np.mean, mode="classification")
     
-    # evaluate
-    def reshape_y_pred(y_true, y_pred):
-        """
-        TensorGraph.Predict returns a list of arrays, one for each output
-        We also have to remove the padding on the last batch
-        Metrics taks results of shape (samples, n_task, prob_of_class)
-        """
-        n_samples = len(y_true)
-        return y_pred[:n_samples]
-        #retval = np.stack(y_pred, axis=1)
-        #return retval[:n_samples]
-    
     
     print("Evaluating model")
     train_predictions = tg.predict_on_generator(data_generator(train_dataset, predict=True))
-    train_predictions = reshape_y_pred(train_dataset.y, train_predictions)
+    train_predictions = self.reshape_y_pred(train_dataset.y, train_predictions)
     train_scores = metric.compute_metric(train_dataset.y, train_predictions, train_dataset.w)
     print("Training ROC-AUC Score: %f" % train_scores)
     
     valid_predictions = tg.predict_on_generator(data_generator(valid_dataset, predict=True))
-    valid_predictions = reshape_y_pred(valid_dataset.y, valid_predictions)
+    valid_predictions = self.reshape_y_pred(valid_dataset.y, valid_predictions)
     valid_scores = metric.compute_metric(valid_dataset.y, valid_predictions, valid_dataset.w)
     print("Valid ROC-AUC Score: %f" % valid_scores)
     
     # save the model
     model.save()
   
+    #self.writePredictions(train_dataset.y, train_predictions)
+    self.writePredictions(valid_dataset.y, valid_predictions)
     # calculate the confusion matrices
     # and output the predictions
-    calc_train = False
-    if calc_train:
-      # true_positive false_positive
-      # false_negative true_negative 
-      if self.calc_confusion_matrix:
-        train_confusion_matrix = np.array([ [0, 0], [0, 0]])
 
-      f_mol_train = open('train_prediction', 'w')
-      f_mol_train.write("# molecule_id train_data frac_train_predict train_predict(%f,%f)" %
-                                                   (self.bbbp_split[0], self.bbbp_split[1]))
-      for i in range(len(train_dataset.y)):
-        f_mol_train.write("%d %f %f" % (i, train_dataset.y[i,0], train_predictions[i,1]))
-
-        if self.calc_confusion_matrix:
-          if train_predictions[i][1] > self.bbbp_split[0]:    
-              train_bbb_prediction = 1
-              if train_dataset.y[i] == 1:
-                  train_confusion_matrix[0,0] += 1
-              else:
-                  train_confusion_matrix[0,1] += 1
-          if train_predictions[i][1] < self.bbbp_split[1]:    
-              train_bbb_prediction = 0
-              if train_dataset.y[i] == 1:
-                  train_confusion_matrix[1,0] += 1
-              else:
-                  train_confusion_matrix[1,1] += 1
-
-          f_mol_train.write("%d" % train_bbb_prediction)
-
-        f_mol_train.write("%s" % '\n')
-
-      f_mol_train.close()
-
-      if self.calc_confusion_matrix:
-        print( 'training confusion matrix' )
-        print( train_confusion_matrix)
-
-    if self.calc_confusion_matrix:
-      valid_confusion_matrix = np.array([ [0, 0], [0, 0]])
-
-    f_mol_valid = open('valid_prediction', 'w')
-    f_mol_valid.write("# molecule_id valid_data frac_valid_predict valid_predict(%f,%f)" %
-                                                   (self.bbbp_split[0], self.bbbp_split[1]))
-    for i in range(len(valid_dataset.y)):
-      f_mol_valid.write("%d %f %f" % (i, valid_dataset.y[i,0], valid_predictions[i,1]))
-
-      if self.calc_confusion_matrix:
-        if valid_predictions[i][1] > self.bbbp_split[0]:    
-            valid_bbb_prediction = 1
-            if valid_dataset.y[i] == 1:
-                valid_confusion_matrix[0,0] += 1
-            else:
-                valid_confusion_matrix[0,1] += 1
-        if valid_predictions[i][1] < self.bbbp_split[1]:    
-            valid_bbb_prediction = 0
-            if valid_dataset.y[i] == 1:
-                valid_confusion_matrix[1,0] += 1
-            else:
-                valid_confusion_matrix[1,1] += 1
-
-        f_mol_valid.write("%d" % valid_bbb_prediction)
-
-      f_mol_valid.write("%s" % '\n')
+  def writePredictions(self, data, predictions):
+    """
+    writes predictions, expects data and predictions to be n x 2 numpy arrays
+    """
     
-    f_mol_valid.close()
+    # true_positive false_positive
+    # false_negative true_negative 
+    if self.calc_confusion_matrix:
+      confusion_matrix = np.array([ [0, 0], [0, 0]])
+
+    f_mol_predict = open('prediction.dat', 'w')
+    f_mol_predict.write("# molecule_id data frac_predict predict(%f,%f)" %
+                                                   (self.bbbp_split[0], self.bbbp_split[1]))
+    for i in range(len(data)):
+      f_mol_predict.write("%d %f %f" % (i, data[i,0], predictions[i,1]))
+
+      if self.calc_confusion_matrix:
+        if predictions[i][1] > self.bbbp_split[0]:    
+            bbb_prediction = 1
+            if data[i] == 1:
+                confusion_matrix[0,0] += 1
+            else:
+                confusion_matrix[0,1] += 1
+        if predictions[i][1] < self.bbbp_split[1]:    
+            bbb_prediction = 0
+            if data[i] == 1:
+                confusion_matrix[1,0] += 1
+            else:
+                confusion_matrix[1,1] += 1
+
+        f_mol_predict.write("%d" % bbb_prediction)
+
+      f_mol_predict.write("%s" % '\n')
+    
+    f_mol_predict.close()
 
     if self.calc_confusion_matrix:
-      print( 'validation confusion matrix' )
-      print( valid_confusion_matrix)
+      print( 'confusion matrix' )
+      print( confusion_matrix)
   
+  def loadBBBpredict(self, filename, featurizer='GraphConv', K=4, reload=False):
+    """Load BBB data"""
+    import os
+  
+    bbb_tasks = ['BBB']
+  
+    data_dir = 'bbbdata'
+    #data_dir = dc.utils.get_data_dir()
+    if reload:
+      #save_dir = os.path.join(data_dir, "bbb/" + featurizer + "/" + split)
+      save_dir = os.path.join(data_dir, filename)
+      loaded, all_dataset, transformers = dc.utils.save.load_dataset_from_disk(
+          save_dir)
+      if loaded:
+        return bbb_tasks, all_dataset, transformers
+  
+    dataset_file = os.path.join(data_dir, filename)
+    #dataset_file = os.path.join(data_dir, "bbb.csv.gz")
+  
+    if featurizer == 'ECFP':
+      featurizer = dc.feat.CircularFingerprint(size=1024)
+    elif featurizer == 'GraphConv':
+      featurizer = dc.feat.ConvMolFeaturizer()
+    elif featurizer == 'Weave':
+      featurizer = dc.feat.WeaveFeaturizer()
+    elif featurizer == 'Raw':
+      featurizer = dc.feat.RawFeaturizer()
+    elif featurizer == 'AdjacencyConv':
+      featurizer = dc.feat.AdjacencyFingerprint(
+          max_n_atoms=150, max_valence=6)
+  
+    loader = dc.data.CSVLoader(
+        tasks=bbb_tasks, smiles_field="smiles", featurizer=featurizer)
+    dataset = loader.featurize(dataset_file, shard_size=8192)
+  
+    # Initialize transformers
+    transformers = [
+        dc.trans.BalancingTransformer(transform_w=True, dataset=dataset)
+    ]
+  
+    print("About to transform data")
+    for transformer in transformers:
+      dataset = transformer.transform(dataset)
+  
+    return bbb_tasks, dataset, transformers
+
+  def getPrediction(self):
+  
+    filename = 'shortexhibit.csv'
+    #fpredict = open('bbbdata/'+filename, 'w')
+    #fpredict.write('smiles,BBB\n')
+    #fpredict.write('CCOc1ccc2nc(S(N)(=O)=O)sc2c1,0\n')
+    #fpredict.write('O=c1[nH]c(=O)n([C@H]2C[C@H](O)[C@@H](CO)O2)cc1I,0')
+    
+    #fpredict.close()
+    bbb_tasks, bbb_datasets, transformers = self.loadBBB(
+            filename, featurizer='GraphConv', split=self.split_method, reload=False, K=4,
+                ftrain=1., fvalid=0., ftest=0.)
+    
+    #bbb_tasks, bbb_datasets, transformers = self.loadBBBpredict(
+    #        filename, featurizer='GraphConv', K=4, reload=False)
+    
+    model = GraphConvModel(
+        len(bbb_tasks), batch_size=10, mode='classification',model_dir='models')
+    
+    model = model.load_from_dir('models')
+    
+    metric = dc.metrics.Metric(
+        dc.metrics.roc_auc_score, np.mean, mode="classification")
+    
+    predicted_val = model.predict(bbb_datasets[0], transformers)
+  
+    self.writePredictions(bbb_datasets[0].y, predicted_val)
+
 def main(argv=None):
   # Parse in command-line arguments, and create the user help instructions
   parser = argparse.ArgumentParser(description='Predict blood-brain barrier permeation '
@@ -381,10 +428,10 @@ def main(argv=None):
                       'confusion matrix.  Default is 0.5.  If "--bbbp_split 0.6" then a '
                       'bbb prediction > 0.6 would be a positive, and a'
                       'bbb prediction < 0.4 would be a negative')
-  parser.add_argument("--generate", action="store_true", default=True,
+  parser.add_argument("--generate", action="store_true",
                  help='Generate and save the model')
-  #parser.add_argument("--predict", action="store_true", default=False,
-  #               help='Predict with the model')
+  parser.add_argument("--predict", action="store_true",
+                 help='Predict with the model')
 
   # Initialize the graphConvolution_BBBdata class
   bbb_gc = graphConvolution_BBBdata()
@@ -393,6 +440,9 @@ def main(argv=None):
   # Tell the class everything specified in files and command line
   if (parser.parse_args().generate):
     bbb_gc.runGraphConv()
+
+  if (parser.parse_args().predict):
+    bbb_gc.getPrediction()
 
 if __name__ == '__main__':
   sys.exit(main())
