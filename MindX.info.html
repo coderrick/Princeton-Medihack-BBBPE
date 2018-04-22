@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<!-- saved from url=(0018)http://mindx.info/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>MindX.info</title>
+    
+	<link href="./MindX.info_files/css" rel="stylesheet"> 
+    <link href="./MindX.info_files/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="./MindX.info_files/main.css">
+    <script async="" src="./MindX.info_files/analytics.js"></script><script src="./MindX.info_files/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="./MindX.info_files/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="./MindX.info_files/three.min.js"></script>
+	<script src="./MindX.info_files/Tween.min.js"></script>
+    <script src="./MindX.info_files/OrbitControls.js"></script>
+
+    <script src="./MindX.info_files/lzma.js"></script>
+    <script src="./MindX.info_files/ctm.js"></script>
+    <script src="./MindX.info_files/CTMLoader.js"></script>
+	<script src="./MindX.info_files/GPUParticleSystem.js"></script>
+	<script src="./MindX.info_files/bas.js"></script>
+	
+	<script src="./MindX.info_files/CopyShader.js"></script>
+	<script src="./MindX.info_files/DigitalGlitch.js"></script>
+	<script src="./MindX.info_files/EffectComposer.js"></script>
+	<script src="./MindX.info_files/RenderPass.js"></script>
+	<script src="./MindX.info_files/MaskPass.js"></script>
+	<script src="./MindX.info_files/ShaderPass.js"></script>
+	<script src="./MindX.info_files/GlitchPass.js"></script>
+	
+	<script type="x-shader/x-vertex" id="vertexShader">
+		varying vec3 vWorldPosition;
+		void main() {
+			vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+			vWorldPosition = worldPosition.xyz;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShader">
+		uniform vec3 topColor;
+		uniform vec3 bottomColor;
+		uniform float offset;
+		uniform float exponent;
+		varying vec3 vWorldPosition;
+		void main() {
+			float h = normalize( vWorldPosition + offset ).y;
+			gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+		}
+	</script>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" style="display: block;" id="navMenu">
+        <div class="container-fluid">
+            <div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-menu" aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+                <a class="navbar-brand" href="http://mindx.info/index.htm">
+					<img alt="Brand" src="./MindX.info_files/logo.png">
+				</a>
+            </div>
+			
+            <div class="collapse navbar-collapse" id="bs-menu">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="http://mindx.info/index.htm">Home</a></li>
+                    <li><a href="http://mindx.info/about.htm">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+	
+	<div id="scene"><canvas width="2426" height="1046" style="width: 1213px; height: 523px;"></canvas></div>
+
+	<div class="control-panel">
+		<button type="button" id="btnControlPanelToggle" class="xbtn">Hide Control Panel</button>
+		<div id="controlPanel">
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><a href="http://mindx.info/#tabMain" aria-controls="tabMain" role="tab" data-toggle="tab">Main</a></li>
+				<li role="presentation"><a href="http://mindx.info/#tabMentalDisorders" aria-controls="tabMentalDisorders" role="tab" data-toggle="tab">Mental Disorders</a></li>
+			</ul>
+
+			<!-- Tab panes -->
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane fade in active" id="tabMain">
+					<select class="ddl" id="ddlMain">
+						<option value="0">Frontal Lobe</option>
+						<option value="1">Temporal Lobe</option>
+						<option value="2">Parietal Lobe</option>
+						<option value="3">Occipital Lobe</option>
+						<option value="4">Cerebellum</option>
+						<option value="-1">---------------</option>
+						<option value="5">Orbitofrontal Cortex</option>
+						<option value="6">Dorsolateral Cortex</option>
+						<option value="7">Anterior Cingulate Cortex</option>
+						<option value="8">Amygdala</option>
+						<option value="9">Hippocampus </option>
+						<option value="10">Basal Ganglia </option>
+					</select>
+					<div id="currentMainHtm" style="height: 370px;">
+			<div class="text-center">
+				<img src="./MindX.info_files/Frontal_lobe.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The function of the frontal lobe involves the ability to project <strong>future</strong> consequences resulting from current actions, the choice between good and bad actions (or better and best) (also known as conscience), the override and suppression of socially unacceptable responses, and the determination of similarities and differences between things or events. The frontal lobe also plays an important part in integrating longer non-task based memories stored across the brain. These are often memories associated with emotions derived from input from the brain's limbic system. The frontal lobe modifies those emotions to generally fit socially acceptable norms.
+			</p>
+			<p>
+				Recent advances have uncovered important roles for the frontal lobes in a multitude of cognitive processes, such as executive function, attention, memory, and language. The importance of the frontal lobes in processes underlying affect, mood, personality, self-awareness, as well as social and moral reasoning.
+			</p>
+		</div>
+				</div>
+				<div role="tabpanel" class="tab-pane fade" id="tabMentalDisorders">
+					<select class="ddl" id="ddlDisorder">
+						<option value="0">Generally about Mental Disorders</option>
+						<option value="1">Schizophrenia</option>
+						<option value="2">Bipolar Disorder</option>
+						<option value="3">Borderline Personality Disorder</option>
+						<option value="4">Autism</option>
+						<option value="5">Anti-Social Personality Disorder</option>
+					</select>
+					<div id="currentDisorderHtm" style="height: 370px;">
+			<p>
+				Scientists have concluded that <strong>environmental factors</strong> as well as a combination of <strong>several genes</strong> are necessary to trigger mental illness. However, it has generally been accepted that each disorder has its own genetic basis.
+			</p>
+			<p>
+				In 2012, one of the most comprehensive studies ever done showed that there could in fact be a common <strong>genetic factor</strong> to mental illness after all. Scientists from the Harvard Medical School and Massachusetts General Hospital analyzed sixty thousand people worldwide and found that there was a genetic <strong>link between five major mental illnesses:</strong> schizophrenia, bipolar disorder, autism, major depression, and attention deficit hyperactivity disorder (ADHD). Together they represent a significant fraction of all mentally ill patients. After an exhaustive analysis of the subjects’ DNA, scientists found that four genes increased the risk of mental illness. Two of them involved the <strong>regulation of calcium channels</strong> in neurons. (Calcium is an essential chemical involved in the processing of neural signals). The calcium channels findings suggest that perhaps—and that is a big if—treatments to affect calcium channeling functioning might have effects across a range of disorders. Already, calcium channel blockers are being used to treat people with bipolar disorder. In the future, these blockers may be used to treat other mental illnesses as well.
+			</p>
+			<h4>New Horizons</h4>
+			<p></p>
+				According to a new theory mentioned in <a href="http://mkaku.org/home/publications/about-the-future-of-the-mind/">Michio Kaku's book</a> we define human consciousness as the process of creating a model of our world in space and time (especially the future) by evaluating many feedback loops in various parameters in order to achieve a goal. 
+			<p></p>
+			<p>
+				For example, a skillful CEO at a board meeting tries to draw out the disagreement among staff members and to sharpen competing points of view in order to sift through the various arguments and then make a final decision. <strong>In the same way, various regions of the brain</strong> make diverging assessments of the future, which are given to the dorsolateral prefrontal cortex, the CEO of the brain.
+			</p>
+			<p>
+				Mental illness is then largely caused by the disruption of the delicate checks and balances between competing feedback loops that simulate the future (usually because one region of the brain is overactive or underactive). Because the CEO of the mind <strong>(the dorsolateral prefrontal cortex)</strong> no longer has a balanced assessment of the facts, due to this disruption in feedback loops, <strong>it begins to make strange conclusions and act in bizarre ways.</strong>
+			</p>
+			<h4>For Example</h4>
+			<p>
+				The voices heard by <strong><u>schizophrenics</u></strong> might arise when several feedback loops are no longer balancing one another. One feedback loop generates spurious voices in the temporal cortex (i.e., the brain is talking to itself). Auditory and visual hallucinations are often <strong>checked by the anterior cingulate cortex</strong>, so a <strong>normal person can differentiate between real and fictitious voices</strong>. But if this region of the brain is not working properly, the brain is flooded with disembodied voices that it believes are real. This can cause schizophrenic behavior. Similarly, the manic-depressive swings of someone with <strong><u>bipolar disorder</u></strong> might be traced to an imbalance between the left and right hemispheres. The necessary interplay between optimistic and pessimistic assessments is thrown off balance, and the person oscillates wildly between these two diverging moods. <strong><u>Paranoia</u></strong> may also be viewed in this light. It results from an imbalance between the amygdala (which registers fear and exaggerates threats) and the prefrontal cortex, which evaluates these threats and puts them into perspective. We should also stress that <strong>evolution</strong> has given us these feedback loops for a reason: to protect us. They keep us clean, healthy, and socially connected. The problem occurs when the dynamic between opposing feedback loops is disrupted.
+			</p>
+		</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+    <div class="container-fluid footer">
+        <div class="row">
+            <div class="col-sm-12">
+                Hold and move: left mouse button to <strong><u>rotate</u></strong> the camera; right mouse button to <strong><u>pan</u></strong> the camera and mouse wheel to <strong><u>scroll</u></strong>.
+            </div>
+        </div>
+    </div>
+	<div class="collapse">
+		<div main-text="0">
+			<div class="text-center">
+				<img src="./MindX.info_files/Frontal_lobe.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The function of the frontal lobe involves the ability to project <strong>future</strong> consequences resulting from current actions, the choice between good and bad actions (or better and best) (also known as conscience), the override and suppression of socially unacceptable responses, and the determination of similarities and differences between things or events. The frontal lobe also plays an important part in integrating longer non-task based memories stored across the brain. These are often memories associated with emotions derived from input from the brain's limbic system. The frontal lobe modifies those emotions to generally fit socially acceptable norms.
+			</p>
+			<p>
+				Recent advances have uncovered important roles for the frontal lobes in a multitude of cognitive processes, such as executive function, attention, memory, and language. The importance of the frontal lobes in processes underlying affect, mood, personality, self-awareness, as well as social and moral reasoning.
+			</p>
+		</div>
+		<div main-text="1">
+			<div class="text-center">
+				<img src="./MindX.info_files/Temporal_lobe.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The temporal lobe is involved in processing sensory input into derived meanings for the appropriate retention of visual memory, language comprehension, and emotion association. The temporal lobe communicates with the hippocampus and plays a key role in the formation of explicit long-term memory modulated by the amygdala.
+			</p>
+			<p>
+				The temporal lobe holds the primary auditory cortex, which is important for the <strong>processing of semantics</strong> in both speech and vision in humans (an important area within the temporal lobe, referred to as the Wernicke’s area, gives us the ability to recognize speech and interpret the meaning of words. Damage to this area, such as from trauma or a stroke, can lead to difficulty understanding speech and difficulty saying words that make sense).
+			</p>
+			<p>
+				The temporal lobe is also believed to be part of <strong>long-term memory</strong>, such as remembering autobiographical information, dates, and places. Damage to this area can also cause anterograde amnesia, or the inability to create new memories.
+			</p>
+		</div>
+		<div main-text="2">
+			<div class="text-center">
+				<img src="./MindX.info_files/Parietal_lobe.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The parietal lobe integrates sensory information among various modalities, including spacial sense and navigation, the main sensory receptive area for the sense of touch The major sensory inputs from the skin (touch, temperature, and pain receptors), relay through the thalamus to the parietal lobe. 
+			</p>
+			<p>
+				The parietal lobe plays important roles in integrating <strong>sensory information</strong> from various parts of the body, knowledge of numbers and their relations, and in the manipulation of objects. Its function also includes processing information relating to the sense of touch. Portions of the parietal lobe are involved with visuospatial processing. The posterior parietal cortex (PPC) receives somatosensory and/or visual input, which then, through motor signals, controls movement of the arm, hand, as well as eye movements.
+			</p>
+			<p>
+				<strong>Damage</strong> to the right hemisphere of this lobe results in the loss of imagery, visualization of spatial relationships and neglect of left-side space and left side of the body. Even drawings may be neglected on the left side. Damage to the left hemisphere of this lobe will result in <strong>problems in mathematics</strong>, long reading, writing, and understanding symbols. The parietal association cortex enables individuals to read, write, and solve mathematical problems.The sensory inputs from the right side of the body go to the left side of the brain and vice versa.
+			</p>
+		</div>
+		<div main-text="3">
+			<div class="text-center">
+				<img src="./MindX.info_files/Occipital_lobe.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The occipital lobe is the <strong>visual processing</strong> center of the mammalian brain containing most of the anatomical region of the visual cortex. Part of the area (ventral stream) is known for the processing the "what" in vision, while different part (dorsal stream) handles the "where/how." This is because the ventral stream provides important information for the identification of stimuli that are stored in memory. With this information in memory, the dorsal stream is able to focus on motor actions in response to the outside stimuli.
+			</p>
+		</div>
+		<div main-text="4">
+			<div class="text-center">
+				<img src="./MindX.info_files/Cerebellum.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				 The cerebellum plays an important role in <strong>motor control</strong>, and it may also be involved in some cognitive functions such as attention and language as well as in regulating fear and pleasure responses, but its movement-related functions are the most solidly established. The human cerebellum <strong>does not initiate movement</strong>, but contributes to coordination, precision, and accurate timing: it receives input from sensory systems of the spinal cord and from other parts of the brain, and integrates these inputs to fine-tune motor activity. Cerebellar damage produces disorders in fine movement, equilibrium, posture, and motor learning in humans
+			</p>
+		</div>
+		<div main-text="5"></div>
+		<div main-text="6">
+			<p>
+				The Orbitofrontal Cortex (OFC) is among the least-understood regions of the human brain; but it has been proposed that the OFC is involved in sensory integration, in representing the affective value of reinforcers, and in <strong>decision-making and expectation</strong>. In particular, the OFC seems to be important in signaling the expected rewards/punishments of an action given the particular details of a situation. In doing this, the brain is capable of comparing the expected reward/punishment with the actual delivery of reward/punishment, thus, making the OFC <strong>critical for adaptive learning</strong>.
+			</p>
+		</div>
+		<div main-text="7">
+			<p>
+				Often referred to as <strong>dorsolateral prefrontal cortex (DLPFC)</strong>. The DLPFC is known for its involvement in the <strong>executive functions</strong>, which is an umbrella term for the management of cognitive processes, including working memory, cognitive flexibility, planning, inhibition and <strong>abstract reasoning</strong>. However, the DLPFC is not exclusively responsible for the executive functions. All complex mental activity requires the additional cortical and subcortical circuits with which the DLPFC is connected. The DLPFC is also the highest cortical area that is involved in motor planning, organization and regulation.
+			</p>
+			<p>
+				Although dorsolateral prefrontal cortex dysfunction has been one of the most replicated findings in schizophrenia research, particularly during tasks that require cognitive control, the mechanisms by which impairment of this prefrontal region translates into cognitive control deficits and related behavioral abnormalities in schizophrenia remain poorly understood. Findings suggest though that there is an association between decreased dorsolateral prefrontal cortex activity and connectivity and a task-related neural network. This deficit in coordinated brain activity may result in the disabling disorganization symptoms related to impaired cognition in individuals with schizophrenia.
+			</p>
+		</div>
+		<div main-text="8">
+			<div class="text-center">
+				<img src="./MindX.info_files/Anterior_cingulate_gyrus.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The anterior cingulate cortex (ACC) is believed to be involved with <strong>error detection</strong> and eliciting some form of conflict within the human brain that can potentially result in an error. Upon detection of a conflict, the ACC then provides cues to other areas in the brain to cope with the conflicting control systems.
+			</p>
+			<p>
+				Also, the ACC registers <strong>physical pain</strong> as shown in functional MRI studies that showed an increase in signal intensity that was correlated with pain intensity. Evidence from social neuroscience studies have suggested that, in addition to its role in physical pain, the ACC may also be involved in <strong>monitoring painful social situations</strong> as well, such as exclusion or rejection. When participants felt socially excluded in an fMRI virtual ball throwing game in which the ball was never thrown to the participant, the ACC showed activation. Further, this activation was correlated with a self-reported measure of social distress, indicating that the ACC may be involved in the detection and monitoring of social situations which may cause social/emotional pain, rather than just physical pain.
+			</p>
+			<p>
+				In The <a href="https://en.wikipedia.org/wiki/The_Astonishing_Hypothesis" target="_blank">Astonishing Hypothesis</a>, <a href="https://en.wikipedia.org/wiki/Francis_Crick" target="_blank">Francis Crick</a> identifies the anterior cingulate, to be specific the anterior cingulate sulcus, as a likely candidate for the center of free will in humans. Crick bases this suggestion on scans of patients with specific lesions that seem to interfere with their sense of independent will, such as alien hand syndrome.
+			</p>
+		</div>
+		<div main-text="9">
+			<p>
+				Amygdala has a primary role in the processing of memory, decision-making, and emotional reactions. The clusters of the amygdala are activated when an individual expresses feelings of <strong>fear or aggression</strong>. This occurs because the amygdala is the primary structure of the brain responsible for fight or flight response. 
+			</p>
+			<p>
+				Amygdala volume correlates positively with both the size (the number of contacts a person has) and the complexity (the number of different groups to which a person belongs) of social networks. Individuals with larger amygdalae had larger and more complex <strong>social networks</strong>. They were also better able to make accurate social judgments about other persons' faces. The amygdala's role in the analysis of social situations stems specifically from its ability to identify and process changes in facial features.
+			</p>
+			<p>
+				Amygdala dysfunction during face emotion processing is well-documented in <strong>bipolar disorder</strong>. Individuals with bipolar disorder showed greater amygdala activity (especially the amygdala/medial-prefrontal-cortex circuit).
+			</p>
+		</div>
+		<div main-text="10">
+			<div class="text-center">
+				<img src="./MindX.info_files/Hippocampus.gif" class="img-responsive brain-lobes-img">
+			</div>
+			<p>
+				The hippocampus belongs to the limbic system and plays important roles in the consolidation of information from short-term <strong>memory</strong> to long-term memory, and in spatial memory that enables navigation.
+			</p>
+			<p>
+				In <strong>Alzheimer's</strong> disease (and other forms of dementia), the hippocampus is one of the first regions of the brain to suffer damage; short-term memory loss and disorientation are included among the early symptoms.
+			</p>
+		</div>
+		<div main-text="11">
+			<p>
+				Popular theories implicate the basal ganglia primarily in <strong>action selection</strong> – in helping to decide which of several possible behaviors to execute at any given time. In more specific terms, the basal ganglia's primary function is likely to control and regulate activities of the motor and premotor cortical areas so that voluntary movements can be performed smoothly
+			</p>
+			<p>
+				The "behavior switching" that takes place within the basal ganglia is influenced by signals from many parts of the brain, including the prefrontal cortex, which plays a key role in executive functions.
+			</p>
+			<p>
+				The importance of basal ganglia for normal brain function and behavior is emphasized by the numerous and diverse neurological conditions associated with basal ganglia dysfunction, which include: disorders of behavior control such as <strong>Tourette syndrome</strong>, hemiballismus, and <strong>obsessive–compulsive disorder</strong>; dystonia; addiction; and movement disorders, the most notable of which are <strong>Parkinson's disease</strong>.
+			</p>
+		</div>
+	</div>
+	<div class="collapse">
+		<div disorder-text="0">
+			<p>
+				Scientists have concluded that <strong>environmental factors</strong> as well as a combination of <strong>several genes</strong> are necessary to trigger mental illness. However, it has generally been accepted that each disorder has its own genetic basis.
+			</p>
+			<p>
+				In 2012, one of the most comprehensive studies ever done showed that there could in fact be a common <strong>genetic factor</strong> to mental illness after all. Scientists from the Harvard Medical School and Massachusetts General Hospital analyzed sixty thousand people worldwide and found that there was a genetic <strong>link between five major mental illnesses:</strong> schizophrenia, bipolar disorder, autism, major depression, and attention deficit hyperactivity disorder (ADHD). Together they represent a significant fraction of all mentally ill patients. After an exhaustive analysis of the subjects’ DNA, scientists found that four genes increased the risk of mental illness. Two of them involved the <strong>regulation of calcium channels</strong> in neurons. (Calcium is an essential chemical involved in the processing of neural signals). The calcium channels findings suggest that perhaps—and that is a big if—treatments to affect calcium channeling functioning might have effects across a range of disorders. Already, calcium channel blockers are being used to treat people with bipolar disorder. In the future, these blockers may be used to treat other mental illnesses as well.
+			</p>
+			<h4>New Horizons</h4>
+			<p></p>
+				According to a new theory mentioned in <a href="http://mkaku.org/home/publications/about-the-future-of-the-mind/">Michio Kaku's book</a> we define human consciousness as the process of creating a model of our world in space and time (especially the future) by evaluating many feedback loops in various parameters in order to achieve a goal. 
+			<p></p>
+			<p>
+				For example, a skillful CEO at a board meeting tries to draw out the disagreement among staff members and to sharpen competing points of view in order to sift through the various arguments and then make a final decision. <strong>In the same way, various regions of the brain</strong> make diverging assessments of the future, which are given to the dorsolateral prefrontal cortex, the CEO of the brain.
+			</p>
+			<p>
+				Mental illness is then largely caused by the disruption of the delicate checks and balances between competing feedback loops that simulate the future (usually because one region of the brain is overactive or underactive). Because the CEO of the mind <strong>(the dorsolateral prefrontal cortex)</strong> no longer has a balanced assessment of the facts, due to this disruption in feedback loops, <strong>it begins to make strange conclusions and act in bizarre ways.</strong>
+			</p>
+			<h4>For Example</h4>
+			<p>
+				The voices heard by <strong><u>schizophrenics</u></strong> might arise when several feedback loops are no longer balancing one another. One feedback loop generates spurious voices in the temporal cortex (i.e., the brain is talking to itself). Auditory and visual hallucinations are often <strong>checked by the anterior cingulate cortex</strong>, so a <strong>normal person can differentiate between real and fictitious voices</strong>. But if this region of the brain is not working properly, the brain is flooded with disembodied voices that it believes are real. This can cause schizophrenic behavior. Similarly, the manic-depressive swings of someone with <strong><u>bipolar disorder</u></strong> might be traced to an imbalance between the left and right hemispheres. The necessary interplay between optimistic and pessimistic assessments is thrown off balance, and the person oscillates wildly between these two diverging moods. <strong><u>Paranoia</u></strong> may also be viewed in this light. It results from an imbalance between the amygdala (which registers fear and exaggerates threats) and the prefrontal cortex, which evaluates these threats and puts them into perspective. We should also stress that <strong>evolution</strong> has given us these feedback loops for a reason: to protect us. They keep us clean, healthy, and socially connected. The problem occurs when the dynamic between opposing feedback loops is disrupted.
+			</p>
+		</div>
+		<div disorder-text="1">
+			<p>
+				Schizophrenia is a chronic and severe mental disorder that affects how a person thinks, feels, and behaves. People with schizophrenia may seem like they have <strong>lost touch with reality.</strong> Although schizophrenia is not as common as other mental disorders, the symptoms can be very disabling.
+			</p>
+			<p>
+				Symptoms of schizophrenia usually start between ages 16 and 30. In rare cases, children have schizophrenia too. They include:
+				</p><ul>
+					<li>Hallucinations</li>
+					<li>Delusions</li>
+					<li>Thought disorders (unusual or dysfunctional ways of thinking)</li>
+					<li>Movement disorders (agitated body movements)</li>
+					
+					<li>“Flat affect” (reduced expression of emotions via facial expression or voice tone)</li>
+					<li>Reduced feelings of pleasure in everyday life</li>
+					<li>Difficulty beginning and sustaining activities</li>
+					<li>Reduced speaking</li>
+					
+					<li>Poor “executive functioning” (the ability to understand information and use it to make decisions)</li>
+					<li>Trouble focusing or paying attention</li>
+					<li>Problems with “working memory” (the ability to use information immediately after learning it)</li>
+				</ul>
+			<p></p>
+			<p>
+				There are several factors that contribute to the risk of developing schizophrenia.
+
+				<strong>Genes and environment:</strong> Scientists have long known that schizophrenia sometimes runs in families. However, there are many people who have schizophrenia who don’t have a family member with the disorder and conversely, many people with one or more family members with the disorder who do not develop it themselves.
+			</p>
+			<p>
+				A growing body of data has implicated ion channels in the susceptibility or pathogenesis of psychiatric diseases. Indeed, population studies support the association of polymorphisms in calcium and potassium channels with the genetic risk for <strong>bipolar disorders</strong> or <strong>schizophrenia</strong>. Moreover, point mutations in calcium, sodium, and potassium channel genes have been identified in some childhood developmental disorders.
+			</p>
+		</div>
+		<div disorder-text="2">
+			<p>
+				Bipolar disorder, also known as manic-depressive illness, is a brain disorder that causes <strong>unusual shifts in mood, energy, activity levels, and the ability to carry out day-to-day tasks</strong>.There are four basic types of bipolar disorder; all of them involve clear changes in mood, energy, and activity levels. These moods range from periods of extremely “up” elated, and energized behavior (known as manic episodes) to very sad, “down” or hopeless periods (known as depressive episodes).
+			</p>
+			<p>
+				Bipolar disorder can be present even when mood swings are less extreme. For example, some people with bipolar disorder experience hypomania, a less severe form of mania. During a hypomanic episode, an individual may feel very good, be highly productive, and function well. The person may not feel that anything is wrong, but <strong>family and friends</strong> may recognize the mood swings and/or changes in activity levels as possible bipolar disorder. Without proper treatment, people with hypomania may develop severe mania or depression.
+			</p>
+			<p>
+				In bipolar disorder, structural brain abnormalities in the prefrontal cortex have been confirmed in postmortem studies and with structural MRI. For example, the subgenual portion of the anterior cingulate cortex was reduced in volume in patients with bipolar disorder with a family history of affective disorder. Recent studies using voxel-based morphometry (VBM) have also reported gray-matter reductions in the <strong>prefrontal cortex</strong> in patients with bipolar disorder. 
+			</p>
+		</div>
+		<div disorder-text="3">
+			<p>
+				Borderline personality disorder (BPD) is a serious mental disorder marked by a pattern of ongoing instability in moods, behavior, self-image, and functioning. These experiences often result in impulsive actions and unstable relationships. A person with BPD may <strong>experience intense episodes</strong> of anger, depression, and anxiety that may last from only a few hours to days.
+			</p>
+			<p>
+				Some people with BPD also have high rates of co-occurring mental disorders, such as mood disorders, anxiety disorders, and eating disorders, along with substance abuse, self-harm, suicidal thinking and behaviors, and suicide. <strong>Differences in the working tissue of the brain,</strong> called grey matter, have been linked to impaired functioning of an emotion-regulating circuit in patients with borderline personality disorder (BPD). People with BPD had excess grey matter in a fear hub deep in the brain, which over-activated when they viewed scary faces. By contrast, the hub's regulator near the front of the brain was deficient in grey matter and underactive.
+			</p>
+			<p>
+				To find out, the researchers first used functional magnetic resonance imaging <strong>(fMRI)</strong>, to compare responses of 12 adult BPD patients with those of 12 healthy controls to pictures of faces with fearful, angry and neutral expressions. In response to fearful faces, <strong>the amygdala, the fear hub, showed exaggerated activity</strong> in the BPD patients, while the anterior cingulate cortex(ACC) was relatively underactive. Since ACC activity would normally increase to dampen an overactive amygdala, this suggested weak regulation of emotion in the circuit.
+			</p>
+		</div>
+		<div disorder-text="4">
+			<p>
+				Autism spectrum disorder (ASD) is the name for a group of developmental disorders. ASD includes a wide range, “a spectrum,” of symptoms, skills, and levels of disability. People with ASD often have these characteristics:
+				</p><ul>
+					<li>Ongoing social problems that include difficulty communicating and interacting with others</li>
+					<li>Repetitive behaviors as well as limited interests or activities</li>
+					<li>Symptoms that typically are recognized in the first two years of life</li>
+					<li>Symptoms that hurt the individual’s ability to function socially, at school or work, or other areas of life</li>
+				</ul>
+				Some people are mildly impaired by their symptoms, while others are severely disabled. Treatments and services <strong>can improve</strong> a person’s symptoms and ability to function.
+			<p></p>
+			<p>
+				Recent findings from neuroimaging studies have led to the understanding of <strong>structural and functional abnormalities</strong> of the brain development in individuals with ASD, and the genetic bases of the brain development. Synaptic deficits mediated by <strong>genetic factors</strong> in ASD not only affect their anatomical structure, but also affect the aspects of local neuronal circuitry and the functions of brain regions. These are also related to the neuronal development and microstructural makeup of cortical folding. Differences in brain anatomy examined in ASD are relevant to specific clinical symptoms and features of ASD. ASD is likely a 'neural systems' condition that is mediated by abnormalities in regionally distributed cortical networks rather than separated brain regions. Therefore, ASD has also been referred to as a 'developmental disconnection syndrome'.
+			</p>
+			<p>
+				Many age-related studies have examined group differences in the total brain volume between ASD and typically developing. Findings generally have evidence of its <strong>atypical developmental trajectory</strong> with enlarged brain volume in younger individuals with ASD, but decreased volume or no difference in older individuals with ASD compared to typically developing children. Although it has not been identified abnormal brain maturation during adolescence and adulthood in ASD, brain development during early childhood in ASD seems to be predominated by an enlarged brain volume of the frontal and temporal lobes followed by arrested growth and a possible declined volumetric capacity of the brain after around 10~15 years of age.
+			</p>
+		</div>
+		<div disorder-text="5">
+			<p>
+				Also known as <strong>Psychopathy or Sociopathy</strong> (in 1980 renamed to more general Antisocial Personality Disorder) is a personality disorder characterized by remorseless and impulsive antisocial behavior. It has devastating effects on society, particularly through crime. It is estimated that the prevalence of psychopathy is about 1% in the general population, but 15–25% in the U.S. adult prison population. Compared to prisoners without psychopathy, psychopathic prisoners have significantly higher rates of violent crime and recidivism.
+			</p>
+			<p>
+				Antisocial personality disorder is defined by a pervasive and persistent disregard for morals, social norms, and the rights and feelings of others. Individuals with this personality disorder will typically have <strong>no compunction</strong> in exploiting others in harmful ways for their own gain or pleasure, and frequently manipulate and deceive other people, achieving this through wit and a facade of superficial charm, or through intimidation and violence. They may display arrogance and think lowly and negatively of others, and lack remorse for their harmful actions and have a callous attitude to those they have harmed. Irresponsibility is a core characteristic of this disorder: they can have significant difficulties in maintaining stable employment as well as fulfilling their social and financial obligations, and people with this disorder often lead exploitative, unlawful, or parasitic lifestyles.
+			</p>
+			<p>
+				Although a growing number of studies are converging to implicate the <strong>prefrontal cortex (and specific subsectors thereof) as key pathophysiological</strong> substrates for the disorder, the field continues to face a number of methodological challenges and limitations that will need to be addressed in future studies. Moreover, a comprehensive understanding of prefrontal dysfunction in psychopathy will no doubt depend on further refinement of the basic systems-level understanding of normal prefrontal function.
+			</p>
+			<p>
+				Key regions commonly found to be impaired in antisocial populations include the prefrontal cortex (particularly orbitofrontal and dorsolateral prefrontal cortex), superior temporal gyrus, amygdala-hippocampal complex, and anterior cingulate cortex. <strong>Key functions of these regions</strong> are reviewed to provide a better understanding on how deficits in these regions may predispose to antisocial behavior.
+			</p>
+		</div>
+	</div>
+	
+	<div class="loader" style="display: none;">
+		<h4>Loading..</h4>
+		
+		<h5>This project is dedicated to all people who have been affected by mental disorders.</h5>
+	</div>
+	
+    <script src="./MindX.info_files/main.js"></script>
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-100038069-1', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+
+
+</body></html>

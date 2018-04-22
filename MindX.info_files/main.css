@@ -1,0 +1,93 @@
+body {
+    background-color: rgb(40, 40, 40);
+    font-family: 'Roboto', sans-serif;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    color: #eee;
+	font-size: 16px;
+}
+
+a {
+    text-decoration: none;
+}
+
+nav {
+    margin-bottom: 40px;
+}
+
+h4{
+	border-bottom-color: #ccc;
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+}
+
+.control-panel{
+	position: absolute;
+	top: 70px;
+	right: 20px;
+	width: 430px;
+	height: 85%;
+	background-color: #fff;
+	color: #222;
+	padding: 10px;
+	opacity: 0.666;
+}
+.control-panel:hover{
+	opacity: 1;
+}
+#currentDisorderHtm, #currentMainHtm{
+	padding: 5px;
+	overflow: auto;
+	height: auto;
+}
+#btnControlPanelToggle{
+	width: 100%;
+	margin-bottom: 8px;
+}
+.footer {
+    color: #666;
+}
+
+.brain-lobes-img {
+    height: 200px;
+    width: auto;
+    margin: 0 auto;
+}
+
+.ddl{
+	padding: 6px;
+	font-size: 16px;
+	border-radius: 0px;
+	background-color: #fff;
+	border: 1px solid black;
+	width: 100%;
+}
+
+.xbtn{
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid black;
+	color: black;
+}
+.xbtn:hover{
+	background-color: #000;
+	color: white;
+}
+.navbar-brand>img{
+	height: 26px;
+}
+
+.loader{
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	background-color: white;
+	z-index: 1000;
+	text-align: center;
+}
+.loader h4, .loader h5{
+	color: black;
+}
