@@ -75,7 +75,7 @@ class bbbPredict(object):
 
   def getPrediction(self):
   
-    filename = 'onepredictdata.csv'
+    filename = 'exhibit.csv'
     #fpredict = open('bbbdata/'+filename, 'w')
     #fpredict.write('smiles,BBB\n')
     #fpredict.write('CCOc1ccc2nc(S(N)(=O)=O)sc2c1,0\n')
