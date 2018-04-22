@@ -23,6 +23,7 @@ from deepchem.models.tensorgraph.layers import Dense, SoftMax, \
 from deepchem.models.tensorgraph.layers import Label, Weights
 from deepchem.metrics import to_one_hot
 from deepchem.feat.mol_graphs import ConvMol
+import sys, argparse
   
 class bbbPredict(object):
 
@@ -97,4 +98,6 @@ class bbbPredict(object):
     return predicted_val
 
 if __name__ == '__main__':
+  predict = bbbPredict()
+  print("predicted value: ", predict.getPrediction())
   sys.exit(main())
