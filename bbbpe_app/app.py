@@ -10,6 +10,6 @@ def index():
 @app.route('/myth.html')
 def results():
     return render_template('myth.html', the_title='BBBPE Database')
-
+    
 if __name__ == '__main__':
     app.run(debug=True)
