@@ -4,6 +4,8 @@
  Predict blood-brain barrier permeation
  from molecular positions
  							                                    
+ Largely from the deepchem 
+ 'Graph Convolutions For Tox21' Tutorial
 """
 from __future__ import division
 from __future__ import print_function
@@ -18,11 +20,14 @@ def loadBBB(filename, featurizer='GraphConv', split='index', reload=True, K=4,
   """Load BBB data"""
   import os
 
+  # BBB is a integer, that is either 
+  #        1, for passing the blood-brain barrier (bbb)
+  #     or 2 for NOT passing the bbb
   bbb_tasks = ['BBB']
 
   data_dir = 'bbbdata'
-  #data_dir = dc.utils.get_data_dir()
   if reload:
+    # for future implementation into deepchem
     #save_dir = os.path.join(data_dir, "bbb/" + featurizer + "/" + split)
     save_dir = os.path.join(data_dir, filename)
     loaded, all_dataset, transformers = dc.utils.save.load_dataset_from_disk(
@@ -31,7 +36,6 @@ def loadBBB(filename, featurizer='GraphConv', split='index', reload=True, K=4,
       return bbb_tasks, all_dataset, transformers
 
   dataset_file = os.path.join(data_dir, filename)
-  #dataset_file = os.path.join(data_dir, "bbb.csv.gz")
 
   if featurizer == 'ECFP':
     featurizer = dc.feat.CircularFingerprint(size=1024)
@@ -79,7 +83,6 @@ def loadBBB(filename, featurizer='GraphConv', split='index', reload=True, K=4,
       print('reloading')
       dc.utils.save.save_dataset_to_disk(data_dir, train, valid, test,
                                                transformers)
-      #dc.utils.save.save_dataset_to_disk(save_dir, train, valid, test,
   return bbb_tasks, all_dataset, transformers
 
 # Example
@@ -231,5 +234,58 @@ valid_predictions = tg.predict_on_generator(data_generator(valid_dataset, predic
 valid_predictions = reshape_y_pred(valid_dataset.y, valid_predictions)
 valid_scores = metric.compute_metric(valid_dataset.y, valid_predictions, valid_dataset.w)
 print("Valid ROC-AUC Score: %f" % valid_scores)
+valid_predictions = tg.predict_on_generator(data_generator(valid_dataset, predict=True))
+valid_predictions = reshape_y_pred(valid_dataset.y, valid_predictions)
+valid_scores = metric.compute_metric(valid_dataset.y, valid_predictions, valid_dataset.w)
+print("Valid ROC-AUC Score: %f" % valid_scores)
 
+# calculate the confusion matrices
+# and output the predictions
+split = [0.55, 0.45]
+calc_train = False
+if calc_train:
+    # true_positive false_positive
+    # false_negative true_negative 
+    valid_confusion_matrix = np.array([ [0, 0], [0, 0]])
+    print("# molecule_id train_data train_predict(%f,%f) train_predictions" % (split[0], split[i]))
+    train_confusion_matrix = np.array([ [0, 0], [0, 0]])
+    for i in range(len(train_dataset.y)):
+        if train_predictions[i][1] > split[0]:    
+            train_bbb_prediction = 1
+            if train_dataset.y[i] == 1:
+                train_confusion_matrix[0,0] += 1
+            else:
+                train_confusion_matrix[0,1] += 1
+        if train_predictions[i][1] < split[1]:    
+            train_bbb_prediction = 0
+            if train_dataset.y[i] == 1:
+                train_confusion_matrix[1,0] += 1
+            else:
+                train_confusion_matrix[1,1] += 1
+        print(i, train_dataset.y[i,0], train_bbb_prediction, train_predictions[i,1])
+    print( 'training confusion matrix' )
+    print( train_confusion_matrix)
+
+valid_confusion_matrix = np.array([ [0, 0], [0, 0]])
+for i in range(len(valid_dataset.y)):
+    print("# molecule_id valid_data valid_predict(%f,%f) valid_predictions" % (split[0], split[i]))
+    if valid_predictions[i][1] > split[0]:    
+        valid_bbb_prediction = 1
+        if valid_dataset.y[i] == 1:
+            valid_confusion_matrix[0,0] += 1
+        else:
+            valid_confusion_matrix[0,1] += 1
+    if valid_predictions[i][1] < split[1]:    
+        valid_bbb_prediction = 0
+        if valid_dataset.y[i] == 1:
+            valid_confusion_matrix[1,0] += 1
+        else:
+            valid_confusion_matrix[1,1] += 1
+
+    print(i, valid_dataset.y[i,0], valid_bbb_prediction, valid_predictions[i,0])
+
+print( 'validation confusion matrix' )
+print( valid_confusion_matrix)
+
+# save the model
 model.save()
