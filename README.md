@@ -20,5 +20,5 @@ example python call:
 Note: any data for training or predicting must be located in the 'bbbdata' directory.
 Note: data must be in the csv format, and include collumn headers: 'smiles' and 'bbb' 
 
-# try it!
-Try out out Beta web app [HERE!](http://coderrick.github.io/)
+# Try it!
+Take a look at our Beta web app [HERE!](http://coderrick.github.io/)
