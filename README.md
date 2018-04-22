@@ -5,7 +5,7 @@ BBBPE (Blood Brain Barrier Penetration Engine) is an application that leverages 
 The python module can be used via command-line arguments.
 This requires installing deepchem, and all it's dependencies
 
-calling 'python graphConvolution_BBBdata.py -h' will give information
+calling `'python graphConvolution_BBBdata.py -h'` will give information
 about the command-line arguments
 example python call:
      'python graphConvolution_BBBdata.py --filename 'finaldata.csv' 
