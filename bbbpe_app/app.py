@@ -8,7 +8,7 @@ def index():
     return render_template('index.html', the_title='BBBPE Home')
 
 @app.route('/myth.html')
-def myth():
+def results():
     return render_template('myth.html', the_title='BBBPE Database')
 
 if __name__ == '__main__':
