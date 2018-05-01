@@ -10,8 +10,8 @@ This requires installing deepchem, and all it's dependencies
 calling `'python graphConvolution_BBBdata.py -h'` will give information
 about the command-line arguments
 example python call:
-     `'python graphConvolution_BBBdata.py --filename 'finaldata.csv'`
-                                         `--split_method='index'`
+`'python graphConvolution_BBBdata.py --filename 'finaldata.csv'`
+`--split_method='index'`
                                          `--training_fraction 0.6` 
                                          `--testing_fraction 0.2`
                                          `--validation_fraction 0.2`
